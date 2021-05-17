@@ -1,9 +1,8 @@
 Job service:
 ============
-  - Customers can:
+  - providers can:
     - Create jobs
     - Update jobs
-    - Delete jobs
     - Query job status
     - Retrieve a list of their jobs
   - Agents can:
@@ -16,31 +15,29 @@ Job service:
   
 Agent service:
 =============
-  - Customers can:
+  - Providers can:
     - Query number of agents (in proximity?)
-    - Query the status/position of an agent if it currently executes a job created by this customer
+    - Query the status/position of an agent if it currently executes a job created by this Providers
   - Agents can:
     - Set their availability (on/off duty)
     - Update their position
 
 Route service:
 ==============
-  - Customers/Agents can:
+  - providers/Agents can:
     - Retrieve routes
     - Geocode / reverse geocode
 
 Auth/Login service:
 =============
   - Admins can:
-    - create Customers
-    - delete Customers
-    - create Agents
-    - delete Agents
+    - create new users (email, password, role)
+    - delete users
+    - query all user infos
 
   - Everybody can:
     - Login and receive auth token
+    - Fetch their own user info (e.g. to validate auth token)
 
   - Other services can:
     - Verify auth token and query the users role
-    
-  
