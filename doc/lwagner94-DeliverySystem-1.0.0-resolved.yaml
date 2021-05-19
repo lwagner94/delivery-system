@@ -1,0 +1,696 @@
+---
+openapi: 3.0.0
+info:
+  title: Delivery System
+  description: Good delivery coordination system
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/lwagner94/DeliverySystem/1.0.0
+  description: DeliverySystem
+- url: http://localhost:8000/auth/1.0.0
+  description: Localhost
+tags:
+- name: auth
+  description: |
+    Authentication service. Handles user logins, hands out authentication tokens and verifies them.
+    Can be used to query a user's role.
+- name: agent
+  description: |
+    Agent service. Handles agent state.
+- name: job
+  description: |
+    Job service. Manages delivery jobs.
+- name: geo
+  description: |
+    Geocoding service. Resolves and verifies addresses.
+paths:
+  /auth/login:
+    post:
+      tags:
+      - auth
+      summary: Log in a user
+      description: |
+        Log in a registered user to receive the API token for further use of the API
+      operationId: authLogin
+      requestBody:
+        description: User credentials
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        "200":
+          description: Log in successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        "400":
+          description: Invalid parameters
+        "401":
+          description: User credentials are not valid
+  /auth/logout:
+    post:
+      tags:
+      - auth
+      summary: Log out
+      description: Log out registered and currently logged in user to invalidate API token
+      operationId: authLogout
+      responses:
+        "200":
+          description: Log out successful
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Access token is missing or invalid
+      security:
+      - bearerAuth: []
+  /auth/user/{user_id}:
+    get:
+      tags:
+      - auth
+      summary: Get user info
+      description: |
+        Get information about the user. Also useful to verify the login state
+        of a user.
+      operationId: authGetUser
+      parameters:
+      - name: user_id
+        in: path
+        description: |
+          User ID. If is `self`, return info about own user, based on authentication token.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: self
+      responses:
+        "200":
+          description: User info is returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+        "404":
+          description: User with given `user_id` not found
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - auth
+      summary: Delete a user
+      description: Delete a user, identified by `id`
+      operationId: authDeleteUser
+      parameters:
+      - name: user_id
+        in: path
+        description: |
+          User ID. If the special id `self` is passed, we refer to our own user,
+          based on the authentication token.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: self
+      responses:
+        "200":
+          description: User successfully deleted
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+        "404":
+          description: User with given `user_id` not found
+      security:
+      - bearerAuth: []
+  /auth/user:
+    post:
+      tags:
+      - auth
+      summary: Create user
+      description: Create a new user with provided user infos
+      operationId: authCreateUser
+      requestBody:
+        description: Information about the new user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUserInfo'
+      responses:
+        "201":
+          description: User created successfully
+          headers:
+            Location:
+              style: simple
+              explode: false
+              schema:
+                type: string
+                example: /auth/user/userid-1234
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+      security:
+      - bearerAuth: []
+  /agent/{user_id}:
+    get:
+      tags:
+      - agent
+      summary: Get agent state
+      description: Get agent state, such as location or availability
+      operationId: agentGetState
+      parameters:
+      - name: user_id
+        in: path
+        description: User ID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/AgentState'
+      responses:
+        "200":
+          description: Request okay, agent state included
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+        "404":
+          description: User with given `user_id` not found
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - agent
+      summary: Update agent state
+      description: Update agent state, such as availability and location
+      operationId: agentUpdateState
+      parameters:
+      - name: user_id
+        in: path
+        description: |
+          User ID. By using the special `self` id one refers to the currently logged in user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: self
+      requestBody:
+        description: State of the agent
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentState'
+      responses:
+        "200":
+          description: Agent state successfully updated
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+        "404":
+          description: User with given `user_id` not found
+      security:
+      - bearerAuth: []
+  /job:
+    get:
+      tags:
+      - job
+      summary: Get jobs
+      description: Get jobs based on filters
+      operationId: jobGet
+      parameters:
+      - name: radius
+        in: query
+        description: search radius in meters (agents only)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: number
+          example: 5000
+      - name: longitude
+        in: query
+        description: pick-up location longitude (agents only)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: number
+          example: 47.05812932556646
+      - name: latitude
+        in: query
+        description: pick-up location latitude (agents only)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: number
+          example: 15.459891192023168
+      - name: status
+        in: query
+        description: job status to filter by (agents, providers)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: open
+          enum:
+          - open
+          - picked_up
+          - delivered
+          - cancelled
+      - name: provider_user_id
+        in: query
+        description: |
+          Query jobs created by the given provider. *Providers* can only use the special id `self` to query their own jobs.
+          *Admins* can query everything with a valid `provider_user_id`.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: userid-1234
+      - name: agent_user_id
+        in: query
+        description: |
+          Query jobs claimed/fulfilled by the given agent. *Agents* can only use the special id `self` to query their own jobs.
+          *Admins* can query everything with a valid `agent_user_id.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: userid-1234
+      responses:
+        "200":
+          description: Request okay, job info included
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobInfo'
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+        "404":
+          description: User with given `user_id` not found
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - job
+      summary: Create job
+      description: Create a new job
+      operationId: jobCreate
+      requestBody:
+        description: Job description
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewJobInfo'
+      responses:
+        "201":
+          description: Job successfully created
+          headers:
+            Location:
+              style: simple
+              explode: false
+              schema:
+                type: string
+                example: /job/jobid-1234
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+      security:
+      - bearerAuth: []
+  /job/{job_id}:
+    get:
+      tags:
+      - job
+      summary: Get info about a specific job
+      description: Get info about a specific job
+      operationId: jobGetSingle
+      parameters:
+      - name: job_id
+        in: path
+        description: Job ID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: jobid-1234
+      responses:
+        "200":
+          description: Request okay, job info included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobInfo'
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+        "404":
+          description: User with given `user_id` not found
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - job
+      summary: Update a job
+      description: |
+        Update a job. Used by providers to change details about a job and by agents
+        to claim/mark completion
+      operationId: jobUpdate
+      parameters:
+      - name: job_id
+        in: path
+        description: Job ID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: jobid-1234
+      requestBody:
+        description: Job description
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateJobInfo'
+      responses:
+        "200":
+          description: Job successfully updated
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+        "404":
+          description: Job with given `job_id` not found
+      security:
+      - bearerAuth: []
+  /job/tracking/{job_id}:
+    get:
+      tags:
+      - job
+      summary: Delivery tracking information for the end user.
+      description: |
+        Delivery tracking information for the end user. Gives limited information
+        about a job without authentication
+      operationId: jobGetTrackingInfo
+      parameters:
+      - name: job_id
+        in: path
+        description: Job ID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: jobid-1234
+      responses:
+        "200":
+          description: Request okay, tracking info included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackingInfo'
+        "404":
+          description: Job with given `job_id` not found
+  /geo/coordinates:
+    get:
+      tags:
+      - geo
+      summary: Get coordinates for a given address
+      description: Get coordinates for a given address
+      operationId: getCoordinatesForAddress
+      parameters:
+      - name: address
+        in: query
+        description: Address for which the coordinates should be calculated
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: Inffeldgasse 16a, 8010 Graz
+      responses:
+        "200":
+          description: Request okay, coordinates included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coordinates'
+        "400":
+          description: Address could not be resolved or is ambiguous
+        "401":
+          description: Access token is missing or invalid
+        "403":
+          description: User is not permitted to perform this operation (e.g. wrong role)
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    UserCredentials:
+      required:
+      - email
+      - password
+      type: object
+      properties:
+        email:
+          type: string
+          example: user1@example.com
+        password:
+          type: string
+          example: secret
+    AuthToken:
+      required:
+      - token
+      type: object
+      properties:
+        token:
+          type: string
+          example: auth-token-1234
+    UserInfo:
+      required:
+      - email
+      - id
+      - role
+      type: object
+      properties:
+        id:
+          type: string
+          example: userid_1234
+        email:
+          type: string
+          example: user1@example.com
+        role:
+          type: string
+          example: agent
+    NewUserInfo:
+      required:
+      - email
+      - password
+      - role
+      type: object
+      properties:
+        email:
+          type: string
+          example: user1@example.com
+        password:
+          type: string
+          example: secret
+        role:
+          type: string
+          example: agent
+    AgentState:
+      required:
+      - status
+      type: object
+      properties:
+        status:
+          type: string
+          example: idle
+          enum:
+          - off_duty
+          - idle
+          - picking_up
+          - delivering
+        longitude:
+          type: number
+          format: double
+          example: 47.05812932556646
+        latitude:
+          type: number
+          format: double
+          example: 15.459891192023168
+        current_job:
+          type: string
+          example: jobid-1234
+    NewJobInfo:
+      required:
+      - deliver_at
+      - description
+      - pickup_at
+      type: object
+      properties:
+        pickup_at:
+          type: string
+          example: Herrengasse 10, 8010 Graz
+        deliver_at:
+          type: string
+          example: Inffeldgasse 16a, 8010 Graz
+        description:
+          type: string
+          example: 1x Pizza Hawaii
+    UpdateJobInfo:
+      type: object
+      properties:
+        pickup_at:
+          type: string
+          example: Herrengasse 10, 8010 Graz
+        deliver_at:
+          type: string
+          example: Inffeldgasse 16a, 8010 Graz
+        description:
+          type: string
+          example: 1x Pizza Hawaii
+        status:
+          type: string
+          enum:
+          - open
+          - picked_up
+          - delivered
+          - cancelled
+        agent_user_id:
+          type: string
+          example: userid-1234
+    JobInfo:
+      required:
+      - agent_user_id
+      - deliver_at
+      - description
+      - job_id
+      - pickup_at
+      - provider_user_id
+      - status
+      type: object
+      properties:
+        pickup_at:
+          type: string
+          example: Herrengasse 10, 8010 Graz
+        deliver_at:
+          type: string
+          example: Inffeldgasse 16a, 8010 Graz
+        description:
+          type: string
+          example: 1x Pizza Hawaii
+        status:
+          type: string
+          enum:
+          - open
+          - picked_up
+          - delivered
+          - cancelled
+        agent_user_id:
+          type: string
+          example: userid-1234
+        provider_user_id:
+          type: string
+          example: userid-1234
+        job_id:
+          type: string
+          example: jobid-1234
+    TrackingInfo:
+      required:
+      - deliver_at
+      - description
+      - latitude
+      - longitude
+      - status
+      type: object
+      properties:
+        pickup_at:
+          type: string
+          example: Herrengasse 10, 8010 Graz
+        deliver_at:
+          type: string
+          example: Inffeldgasse 16a, 8010 Graz
+        description:
+          type: string
+          example: 1x Pizza Hawaii
+        status:
+          type: string
+          enum:
+          - open
+          - picked_up
+          - delivered
+          - cancelled
+        longitude:
+          type: number
+          format: double
+          example: 47.05812932556646
+        latitude:
+          type: number
+          format: double
+          example: 15.459891192023168
+    Coordinates:
+      required:
+      - latitude
+      - longitude
+      - status
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: double
+          example: 47.05812932556646
+        latitude:
+          type: number
+          format: double
+          example: 15.459891192023168
+  responses:
+    InvalidParameters:
+      description: Invalid parameters
+    UnauthorizedError:
+      description: Access token is missing or invalid
+    LoginFailedError:
+      description: User credentials are not valid
+    UserNotFoundError:
+      description: User with given `user_id` not found
+    JobNotFoundError:
+      description: Job with given `job_id` not found
+    PermissionError:
+      description: User is not permitted to perform this operation (e.g. wrong role)
+    BadAddressError:
+      description: Address could not be resolved or is ambiguous
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
