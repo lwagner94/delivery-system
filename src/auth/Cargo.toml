@@ -1,0 +1,18 @@
+[package]
+name = "auth"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "4.0.0-beta.6"
+env_logger = "0.8.3"
+serde = { version = "1.0", features = ["derive"] }
+sqlx = { version = "0.5.5", features = ["postgres", "runtime-actix-rustls", "uuid" ] }
+dotenv = "0.15.0"
+anyhow = "1.0.40"
+pwhash = "1.0.0"
+uuid = { version = "0.8.2", features = ["serde", "v4"] }
+thiserror = "1.0.25"
+jsonwebtoken = "7.2.0"

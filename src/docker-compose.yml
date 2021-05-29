@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  auth-db:
+    image: postgres:13-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=auth
+      - POSTGRES_PASSWORD=8NMPNBe3dWmAPmLFsVyUn57gq47z5
