@@ -28,7 +28,14 @@ pub struct AuthToken {
 pub struct User {
     pub id: Uuid,
     pub email: String,
-    #[serde(skip_serializing)]
+    #[serde(skip)]
+    pub password: String,
+    pub role: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NewUser {
+    pub email: String,
     pub password: String,
     pub role: String,
 }
@@ -61,6 +68,55 @@ impl User {
             email: user.email,
             password: user.password,
             role: user.role,
+        })
+    }
+
+    pub async fn find_by_id(id: Uuid, pool: &PgPool) -> Result<User> {
+        let user = sqlx::query!(
+            r#"
+                SELECT "id", "email", "password", "role" FROM "user"
+                    WHERE "id" = $1
+            "#,
+            id
+        )
+            .fetch_one(&*pool)
+            .await?;
+
+        Ok(User {
+            id: user.id,
+            email: user.email,
+            password: user.password,
+            role: user.role,
+        })
+    }
+
+    pub async fn delete_by_id(id: Uuid, pool: &PgPool) -> Result<()> {
+        let mut tx = pool.begin().await?;
+        let deleted = sqlx::query!(r#"DELETE FROM "user" WHERE id = $1"#, id)
+            .execute(&mut tx)
+            .await?;
+
+        tx.commit().await?;
+        Ok(())
+    }
+
+
+
+    pub async fn create(email: &str, password: &str, role: &str, pool: &PgPool) -> Result<User> {
+        let mut tx = pool.begin().await?;
+        let user = sqlx::query!(
+            r#"INSERT INTO "user" ("email", "password", "role") VALUES ($1, $2, $3) RETURNING "id", "email", "password", "role""#,
+            email, password, role
+        )
+            .fetch_one(&mut tx)
+            .await?;
+        tx.commit().await?;
+
+        Ok(User {
+            id: user.id,
+            email: user.email,
+            password: user.password,
+            role: user.role
         })
     }
 }

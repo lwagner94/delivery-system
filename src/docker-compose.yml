@@ -1,9 +1,19 @@
 version: "3.9"
 services:
-  auth-db:
-    image: postgres:13-alpine
+  auth:
+    build: auth
     ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=auth
-      - POSTGRES_PASSWORD=8NMPNBe3dWmAPmLFsVyUn57gq47z5
+      - 5000:5000
+    volumes:
+      - auth-db:/tmp/data
+
+  proxy:
+    image: nginx:1.21
+    ports:
+      - 8000:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+
+volumes:
+  auth-db:
