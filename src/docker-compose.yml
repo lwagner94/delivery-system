@@ -20,7 +20,10 @@ services:
       - 3000:5000
     volumes:
       - ./job-db:/tmp/data
-      - ./app:/app
+      - ./job/app:/app
+    environment:
+      - FLASK_ENV=development
+
 
 
 volumes:
