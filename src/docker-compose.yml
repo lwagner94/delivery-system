@@ -5,7 +5,7 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - auth-db:/tmp/data
+      - ./auth-db:/tmp/data
 
   proxy:
     image: nginx:1.21
@@ -13,6 +13,14 @@ services:
       - 8000:80
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+  job:
+    build: job
+    ports:
+      - 3000:5000
+    volumes:
+      - ./job-db:/tmp/data
+      - ./app:/app
 
 
 volumes:
