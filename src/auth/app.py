@@ -1,3 +1,5 @@
+
+from pathlib import Path
 import sqlalchemy.exc
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -9,6 +11,8 @@ import uuid
 import click
 
 from passlib.context import CryptContext
+
+Path("/tmp/data").mkdir(exist_ok=True)
 
 pwd_context = CryptContext(
         schemes=["pbkdf2_sha256"],
@@ -99,7 +103,7 @@ def login():
 
     user = User.query.filter_by(email=email).first()
 
-    if not user.verify_password(password):
+    if not user or not user.verify_password(password):
         return "User credentials not correct", 401
 
     session = Session(id=str(uuid.uuid4()), user_id=user.id)
