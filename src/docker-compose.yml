@@ -25,6 +25,17 @@ services:
       - 5100:80
     volumes:
       - auth-db:/tmp/data
+    
+  geoapi:
+    image: ${DOCKER_REGISTRY-}geoapi
+    build:
+      context: .
+      dockerfile: GeoApi/Dockerfile
+    expose:
+      - "80"
+    ports:
+      - 5200:80
+
 volumes:
   auth-db:
   agent-db:
