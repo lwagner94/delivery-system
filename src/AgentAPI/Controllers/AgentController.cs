@@ -105,5 +105,27 @@ namespace AgentAPI
                 return StatusCode(403, "You may only update your own agent status.");
             }
         }
+
+        [HttpPost("test_reset")]
+        public IActionResult Reset()
+        {
+            try
+            {
+                var e = Environment.GetEnvironmentVariable("INTEGRATION_TEST");
+                if (e == "1")
+                {
+                    using var conn = dataAccess.GetConnection();
+                    var dbEntries = conn.GetAll<AgentStateTable>();
+                    foreach (var entry in dbEntries)
+                    {
+                        conn.Delete(entry);
+                    }
+                    return Ok();
+                }                
+            }
+            catch (Exception) { }
+
+            return NotFound();
+        }
     }
 }

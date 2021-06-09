@@ -36,5 +36,21 @@ namespace GeoAPI.Controllers
                 Longitude = result.Lon
             };
         }
+
+        [HttpPost("test_reset")]
+        public IActionResult Reset()
+        {
+            try
+            {
+                var e = Environment.GetEnvironmentVariable("INTEGRATION_TEST");
+                if (e == "1")
+                {
+                    return Ok();
+                }
+            }
+            catch (Exception) { }
+
+            return NotFound();
+        }
     }
 }
