@@ -26,4 +26,23 @@ services:
     environment:
       - FLASK_ENV=development
 
+  agentapi:
+    image: ${DOCKER_REGISTRY-}agentapi
+    build:
+      context: .
+      dockerfile: AgentAPI/Dockerfile
+    expose:
+      - "80"
+    ports:
+      - 5100:80
+    
+  geoapi:
+    image: ${DOCKER_REGISTRY-}geoapi
+    build:
+      context: .
+      dockerfile: GeoAPI/Dockerfile
+    expose:
+      - "80"
+    ports:
+      - 5200:80
 
