@@ -28,7 +28,7 @@ services:
     image: ${DOCKER_REGISTRY-}geoapi
     build:
       context: .
-      dockerfile: GeoApi/Dockerfile
+      dockerfile: GeoAPI/Dockerfile
     expose:
       - "80"
     ports:
