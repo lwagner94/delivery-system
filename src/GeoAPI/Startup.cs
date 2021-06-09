@@ -1,11 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using DeliverySystemLib;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-namespace AgentAPI
+namespace GeoAPI
 {
     public class Startup
     {
@@ -20,9 +26,6 @@ namespace AgentAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSingleton<IDataAccess, SqliteDataAccess>();
-            services.AddSingleton<IAuthService, AuthService>();
-            services.AddSingleton<IJobService, JobService>();
 
             services.AddAuthentication(CustomTokenAuthOptions.Name)
                 .AddScheme<CustomTokenAuthOptions, AuthService>(CustomTokenAuthOptions.Name, opt => { });
@@ -36,7 +39,7 @@ namespace AgentAPI
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Agent API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Geo API V1");
             });
 
             if (env.IsDevelopment())

@@ -2,12 +2,10 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace AgentAPI
+namespace DeliverySystemLib
 {
-    public interface IAuthService
+    public interface IJobService
     {
         Task<HttpResponseMessage> Get(string id, HttpRequest request);
-
-        HttpClient GetAuthorizedClient(HttpRequest request);
     }
 }
