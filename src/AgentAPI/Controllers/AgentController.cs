@@ -93,7 +93,6 @@ namespace AgentAPI
                 {
                     Id = UserId
                 };
-                var x = conn.GetAll<AgentStateTable>();
                 if (!conn.Update(dbEntry))
                 {
                     conn.Insert(dbEntry);
