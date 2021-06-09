@@ -6,7 +6,7 @@ namespace DeliverySystemLib
 {
     public class JobService : IJobService
     {
-        private readonly string baseUri ="http://TODO/job/";
+        private readonly string baseUri ="http://job:3000/job/";
         private readonly IAuthService authService;
 
         public JobService(IAuthService authService)
