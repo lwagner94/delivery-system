@@ -1,4 +1,4 @@
-
+import os
 from pathlib import Path
 import sqlalchemy.exc
 from flask import Flask, request, jsonify
@@ -12,7 +12,7 @@ import click
 
 from passlib.context import CryptContext
 
-Path("/tmp/data").mkdir(exist_ok=True)
+Path("/data").mkdir(exist_ok=True)
 
 pwd_context = CryptContext(
         schemes=["pbkdf2_sha256"],
@@ -23,7 +23,7 @@ pwd_context = CryptContext(
 
 app = Flask(__name__)
 CORS(app)
-app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/data/auth.db'
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////data/auth.db'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = b'\x95\x19\x8ca\x9ei\x91\x13rO\xd9\xbct\xc2L\xa4\x1d4I\xad\x1e\x1c7?'
 db = SQLAlchemy(app)
@@ -94,12 +94,14 @@ def get_user_roles(user):
 @app.route('/auth/login', methods=['POST'])
 def login():
     body: dict = request.json
+    if body is None:
+        return "Bad request", 400
 
     email = body.get("email")
     password = body.get("password")
 
     if not email or not password:
-        return "Bad Request", 401
+        return "Bad Request", 400
 
     user = User.query.filter_by(email=email).first()
 
@@ -181,6 +183,9 @@ def get_user(user_id):
                "role": user.role
             }, 200
 
+    if User.query.filter_by(id=user_id).first() is not None:
+        return "Forbidden", 403
+
     return "Not Found", 404
 
 
@@ -196,8 +201,40 @@ def delete_user(user_id):
         db.session.commit()
         return "Ok", 200
 
-    return "Not Found", 404
+    if User.query.filter_by(id=user_id).first() is None:
+        return "Not Found", 404
+    return "Forbidden", 403
 
+
+@app.route('/auth/test_reset', methods=["POST"])
+def test_reset():
+    testing = os.environ.get("INTEGRATION_TEST")
+    if testing != "1":
+        return "Not found", 404
+
+    User.query.delete()
+    Session.query.delete()
+    db.session.commit()
+    create_default_users()
+    return "Ok", 200
+
+
+def create_default_users():
+    try:
+        u = User(email="admin@example.com", role="admin", id=str(uuid.uuid4()))
+        u.set_password("secret")
+        db.session.add(u)
+
+        u = User(email="provider@example.com", role="provider", id=str(uuid.uuid4()))
+        u.set_password("secret")
+        db.session.add(u)
+
+        u = User(email="agent@example.com", role="agent", id=str(uuid.uuid4()))
+        u.set_password("secret")
+        db.session.add(u)
+        db.session.commit()
+    except Exception as e:
+        pass
 
 @app.cli.command("create-user")
 @click.argument("email")
@@ -213,7 +250,7 @@ def create_user(email, password, role):
 
 
 @app.cli.command("list-users")
-def create_user():
+def list_users():
     users = User.query.all()
     for user in users:
         print(str(user))
@@ -231,23 +268,9 @@ def create_user():
 
 
 @app.cli.command("create-default-users")
-def create_users():
+def create_default_users_from_cli():
+    create_default_users()
 
-    try:
-        u = User(email="admin@example.com", role="admin", id=str(uuid.uuid4()))
-        u.set_password("secret")
-        db.session.add(u)
-
-        u = User(email="provider@example.com", role="provider", id=str(uuid.uuid4()))
-        u.set_password("secret")
-        db.session.add(u)
-
-        u = User(email="agent@example.com", role="agent", id=str(uuid.uuid4()))
-        u.set_password("secret")
-        db.session.add(u)
-        db.session.commit()
-    except Exception as e:
-        print(e)
 
 
 if __name__ == '__main__':

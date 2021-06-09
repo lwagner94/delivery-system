@@ -9,6 +9,7 @@ services:
       - ./auth/app:/app
     environment:
       - FLASK_ENV=development
+
   proxy:
     image: nginx:1.21
     ports:
@@ -25,5 +26,6 @@ services:
       - ./job/app:/app
     environment:
       - FLASK_ENV=development
+
 
 

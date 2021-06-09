@@ -7,10 +7,15 @@ from sqlalchemy.orm import relationship
 import requests
 import uuid
 import math
+from pathlib import Path
+import os
+
+Path("/data").mkdir(exist_ok=True)
 
 app = Flask(__name__)
 CORS(app)
-app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/data/job.db'
+#app.config["SERVER_NAME"] = "localhost:8000"
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////data/job.db'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = b'\x95\x19\x8ca\x9ei\x91\x13rO\xd9\xbct\xc2L\xa4\x1d4I\xad\x1e\x1c7?'
 db = SQLAlchemy(app)
@@ -330,6 +335,16 @@ def track_job(job_id):
 
     # Todo: add agent tracking information
     return str(j), 200
+
+@app.route('/job/test_reset', methods=["POST"])
+def test_reset():
+    testing = os.environ.get("INTEGRATION_TEST")
+    if testing != "1":
+        return "Not found", 404
+
+    Job.query.delete()
+    db.session.commit()
+    return "Ok", 200
 
 
 @app.cli.command("init-db")

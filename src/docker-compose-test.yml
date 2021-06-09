@@ -5,10 +5,12 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - ./db:/data
+      - ./test-db:/data
       - ./auth/app:/app
-    environment:
+    environment: 
+      - INTEGRATION_TEST=1
       - FLASK_ENV=development
+
   proxy:
     image: nginx:1.21
     ports:
@@ -21,9 +23,10 @@ services:
     ports:
       - 3000:5000
     volumes:
-      - ./db:/data     
+      - ./test-db:/data
       - ./job/app:/app
     environment:
+      - INTEGRATION_TEST=1 
       - FLASK_ENV=development
 
 
