@@ -23,7 +23,7 @@ namespace AgentAPI
 
     public class AuthService : AuthenticationHandler<CustomTokenAuthOptions>, IAuthService
     {
-        private readonly string baseUri = "http://localhost:8000/auth";
+        private readonly string baseUri = "http://auth:5000/auth";
         private readonly IOptionsMonitor<CustomTokenAuthOptions> options;
 
         public AuthService(IOptionsMonitor<CustomTokenAuthOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)

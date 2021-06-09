@@ -15,7 +15,7 @@ namespace AgentAPI
 {
     public class Program
     {
-        public static string dbPath = "agent_state.db";
+        public static string dbPath = "/tmp/data/agent_state.db";
 
         public static void Main(string[] args)
         {

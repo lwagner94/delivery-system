@@ -9,6 +9,7 @@
     <Company />
     <AssemblyName>AgentAPI</AssemblyName>
     <RootNamespace>AgentAPI</RootNamespace>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>

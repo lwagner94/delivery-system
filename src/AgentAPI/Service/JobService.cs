@@ -9,7 +9,7 @@ namespace AgentAPI
 {
     public class JobService : IJobService
     {
-        private readonly string baseUri ="http://localhost:8000/job/";
+        private readonly string baseUri ="http://TODO/job/";
         private readonly IAuthService authService;
 
         public JobService(IAuthService authService)
