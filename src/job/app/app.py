@@ -1,10 +1,12 @@
 
 from flask import Flask, request, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 from flask_cors import CORS
 from sqlalchemy.orm import relationship
 import requests
 import uuid
+import math
 
 app = Flask(__name__)
 CORS(app)
@@ -12,15 +14,23 @@ app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/data/job.db'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = b'\x95\x19\x8ca\x9ei\x91\x13rO\xd9\xbct\xc2L\xa4\x1d4I\xad\x1e\x1c7?'
 db = SQLAlchemy(app)
+
 AUTH_HOST = "auth"
+AUTH_PORT = "5000"
+
+GEO_HOST = None # "geo"
+GEO_PORT = None # "80"
+
 
 class Job(db.Model):
     __tablename__ = "jobs"
     id = db.Column(db.Integer, primary_key=True)
     pickup_at = db.Column(db.String, nullable=False)
-    pickup_geo = db.Column(db.String, nullable=False)
+    pickup_lon = db.Column(db.Numeric(3,15), nullable=False)
+    pickup_lat = db.Column(db.Numeric(3,15), nullable=False)
     deliver_at = db.Column(db.String, nullable=False)
-    deliver_geo = db.Column(db.String, nullable=False)
+    deliver_lon = db.Column(db.Numeric(3,15), nullable=False)
+    deliver_lat = db.Column(db.Numeric(3,15), nullable=False)
     description = db.Column(db.String, nullable=False)
     status = db.Column(db.String, nullable=False)
     agent_user_id = db.Column(db.String, nullable=True)
@@ -36,11 +46,46 @@ class Job(db.Model):
                     "provider_user_id": "{self.provider_user_id}", \
                     "job_id": "{self.job_id}"'
 
-def authorize(header):
-    bearer = header.get('Authorization')
-    token = bearer.split()[1]
+
+def authorize(token):
+    if AUTH_HOST is None or AUTH_PORT is None:
+        return None
     headers = { "Authorization": "Bearer {0}".format(token)}
-    return requests.get("http://{0}:5000/auth/user/self".format(AUTH_HOST), headers=headers)
+    return requests.get("http://{0}:{1}/auth/user/self".format(AUTH_HOST, AUTH_PORT), headers=headers)
+
+
+def geolocate(address, token):
+    return (47.05812932556646, 15.459891192023168)
+
+    if GEO_HOST is None or GEO_PORT is None:
+        return None
+    headers = { "Authorization": "Bearer {0}".format(token), 
+                "address": "{0}".format(address)}
+
+    lon = None
+    lat = None
+
+    try:
+        r = request.get("http://{0}:{1}/geo/coordinates".format(GEO_HOST, GEO_PORT), headers=headers)
+        if r.status_code != 200:
+            return None
+
+        lon = r.json()["longitude"]
+        lat = r.json()["latitude"]
+    except:
+        return None
+
+    return (lon, lat)
+
+
+# SQLITE functions
+def distance(pickup_lat, pickup_lon, f_lat, f_lng):
+    return 1000 * 6371 * math.acos(
+            math.cos(math.radians(f_lat)) 
+            * math.cos(math.radians(pickup_lat))
+            * math.cos(math.radians(pickup_lon) - math.radians(f_lng)) 
+            + math.sin(math.radians(f_lat))
+            * math.sin(math.radians(pickup_lat)))
 
 
 @app.route('/job', methods=['POST'])
@@ -48,7 +93,9 @@ def create_job():
     token = ""
     r = None
     try:
-        r = authorize(request.headers)
+        token = request.headers.get('Authorization').split()[1]
+        print(token)
+        r = authorize(token)
     except Exception as e:
         print(str(e))
         return "Access token is missing or invalid", 401
@@ -69,10 +116,18 @@ def create_job():
 
     jid = str(uuid.uuid4())
 
+    (pu_lon, pu_lat) = geolocate(pickup_at, token)
+    (d_lon, d_lat) = geolocate(deliver_at, token)
+
+    if pu_lat is None or pu_lon is None or d_lon is None or d_lat is None:
+        return "Invalid parameters", 400
+
     j = Job(pickup_at=pickup_at,
-            pickup_geo="todo",
+            pickup_lon=pu_lon,
+            pickup_lat=pu_lat,
             deliver_at=deliver_at,
-            deliver_geo="todo",
+            deliver_lon=d_lon,
+            deliver_lat=d_lat,
             description=description,
             status='open',
             agent_user_id=None,
@@ -90,27 +145,28 @@ def get_jobs():
     token = ""
     r = None
     try:
-        r = authorize(request.headers)
+        token = request.headers.get('Authorization').split()[1]
+        r = authorize(token)
     except Exception as e:
         print(str(e))
         return "Access token is missing or invalid", 401
 
-    if r.status_code != 200:
+    if r is None or r.status_code != 200:
         return "Access token is missing or invalid", 401
 
     f_radius = None
     f_long = None
     f_lat = None
-    f_state = None
+    f_status = None
     f_provider_user_id = None
     f_agend_user_id = None
 
     body: dict = request.json
 
     if r.json()["role"] in ["admin", "agent"]:
-        f_radius = body.get("radius")
-        f_long = body.get("longitude")
-        f_lat = body.get("latitude")
+        f_radius = float(body.get("radius"))
+        f_long = float(body.get("longitude"))
+        f_lat = float(body.get("latitude"))
     
     if r.json()["role"] in ["admin", "agent", "provider"]:
         f_status = body.get("status")
@@ -127,9 +183,59 @@ def get_jobs():
 
     # Todo: continue
 
-    #Job.query.filter_by(id=user_id).delete()
+    #f_sql_status = "" if f_status is None else "AND status = '{0}'".format(f_status)
+    #f_sql_agend_user_id = "" if f_agend_user_id is None else "AND agent_user_id = '{0}'".format(f_agend_user_id)
+    #f_sql_provider_user_id = "" if f_provider_user_id is None else "AND provider_user_id = '{0}'".format(f_provider_user_id)
 
-    return "todo", 401
+    #sql_statement = " SELECT id,  distance(...)\
+    #        FROM jobs \
+    #        WHERE (1=1 {3} {4} {5} ) \
+    #        HAVING distance < {2} \
+    #        ORDER BY distance;".format(f_lat, f_long, f_radius, f_sql_status, f_sql_agend_user_id, f_sql_provider_user_id)
+    #result = db.engine.execute(sql_statement)
+
+    # Todo: SQLAlchemy in combination with sqlite3.create_function causes troubles!
+    #       solves this issue to get a much better runtime
+
+    if f_radius is not None and (f_lat is None or f_long is None):
+        return "Invalid Paramter", 404 
+
+    j = Job.query
+
+    if f_status is not None:
+        j = j.filter_by(status=f_status)
+
+    if f_agend_user_id is not None:
+        j = j.filter_by(agent_user_id=f_agend_user_id)
+
+    if f_provider_user_id is not None:
+        j = j.filter_by(provider_user_id=f_provider_user_id)
+
+    # pre-filter square
+    if f_radius is not None:
+        print("not none....")
+        d_lat = abs((180/math.pi) * (f_radius/6378137))
+        d_long = abs((180/math.pi) * (f_radius/6378137) / math.cos(f_lat))
+        j = j.filter(Job.pickup_lat >= f_lat - d_lat, Job.pickup_lat <= f_lat + d_lat);
+        j = j.filter(Job.pickup_lon >= f_long - d_long, Job.pickup_lon <= f_long + d_long);
+
+    jobs = j.all()
+    
+    # fine-filter
+    if f_radius is not None:
+        for item in list(jobs):
+            if distance(item.pickup_lat, item.pickup_lon, f_lat, f_long) > f_radius:
+                jobs.remove(item)
+    
+    # print as list
+    json_lst = "["
+    for j in list(jobs):
+        json_lst += " {" + str(j) + "},"
+
+    json_lst = json_lst.rstrip(",")
+    json_lst += "]"
+
+    return json_lst, 200
 
 
 @app.route('/job/<job_id>', methods=['GET'])
@@ -140,12 +246,13 @@ def get_job_info(job_id):
     token = ""
     r = None
     try:
-        r = authorize(request.headers)
+        token = request.headers.get('Authorization').split()[1]
+        r = authorize(token)
     except Exception as e:
         print(str(e))
         return "Access token is missing or invalid", 401
 
-    if r.status_code != 200:
+    if r is None or r.status_code != 200:
         return "Access token is missing or invalid", 401
 
     if r.json()["role"] not in ["provider", "admin", "agent"]:
@@ -167,12 +274,13 @@ def update_job(job_id):
     token = ""
     r = None
     try:
-        r = authorize(request.headers)
+        token = request.headers.get('Authorization').split()[1]
+        r = authorize(token)
     except Exception as e:
         print(str(e))
         return "Access token is missing or invalid", 401
 
-    if r.status_code != 200:
+    if r is None or r.status_code != 200:
         return "Access token is missing or invalid", 401
 
     if r.json()["role"] not in ["admin", "agent"]:
@@ -190,13 +298,21 @@ def update_job(job_id):
         or not body.get("agent_user_id"):
         return "Invalid parameters", 400
 
+    (pu_lon, pu_lat) = geolocate(body.get("pickup_at"), token)
+    (d_lon, d_lat) = geolocate(body.get("deliver_at"), token)
+
+    if pu_lon is None or pu_lat is None or d_lon is None or d_lat is None:
+        return "Invalid parameters", 400
+
     j.pickup_at = body.get("pickup_at")
     j.deliver_at = body.get("deliver_at")
     j.description = body.get("description")
     j.status = body.get("status")
     j.agent_user_id = body.get("agent_user_id")
-    j.pickup_geo = "todo"
-    j.deliver_geo = "todo"
+    j.pickup_lon = pu_lon
+    j.pickup_lat = pu_lat
+    j.deliver_lon = d_lon
+    j.deliver_lat = d_lat
     db.session.commit()
 
     return "Job successfully updated", 200
