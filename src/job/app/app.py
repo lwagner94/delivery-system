@@ -23,8 +23,8 @@ db = SQLAlchemy(app)
 AUTH_HOST = "auth"
 AUTH_PORT = "5000"
 
-GEO_HOST = None # "geo"
-GEO_PORT = None # "80"
+GEO_HOST = "geo"
+GEO_PORT = "80"
 
 
 class Job(db.Model):
@@ -60,8 +60,6 @@ def authorize(token):
 
 
 def geolocate(address, token):
-    return (47.05812932556646, 15.459891192023168)
-
     if GEO_HOST is None or GEO_PORT is None:
         return None
     headers = { "Authorization": "Bearer {0}".format(token), 
@@ -141,7 +139,6 @@ def create_job():
 
     db.session.add(j)
     db.session.commit()
-
     return ("Job successfully created", 201, {"Location" : "/job/{0}".format(jid)})
 
 
@@ -186,8 +183,6 @@ def get_jobs():
     if r.json()["role"] == "agent":
         f_agend_user_id = "self"
 
-    # Todo: continue
-
     #f_sql_status = "" if f_status is None else "AND status = '{0}'".format(f_status)
     #f_sql_agend_user_id = "" if f_agend_user_id is None else "AND agent_user_id = '{0}'".format(f_agend_user_id)
     #f_sql_provider_user_id = "" if f_provider_user_id is None else "AND provider_user_id = '{0}'".format(f_provider_user_id)
@@ -218,7 +213,6 @@ def get_jobs():
 
     # pre-filter square
     if f_radius is not None:
-        print("not none....")
         d_lat = abs((180/math.pi) * (f_radius/6378137))
         d_long = abs((180/math.pi) * (f_radius/6378137) / math.cos(f_lat))
         j = j.filter(Job.pickup_lat >= f_lat - d_lat, Job.pickup_lat <= f_lat + d_lat);
