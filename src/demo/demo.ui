@@ -73,7 +73,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>101</width>
+       <width>111</width>
        <height>16</height>
       </rect>
      </property>
@@ -96,7 +96,7 @@
       <rect>
        <x>10</x>
        <y>40</y>
-       <width>101</width>
+       <width>111</width>
        <height>16</height>
       </rect>
      </property>
@@ -144,9 +144,9 @@
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>40</y>
-      <width>291</width>
+      <x>330</x>
+      <y>50</y>
+      <width>381</width>
       <height>61</height>
      </rect>
     </property>
@@ -237,32 +237,6 @@
       <width>113</width>
       <height>21</height>
      </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_14">
-    <property name="geometry">
-     <rect>
-      <x>1040</x>
-      <y>810</y>
-      <width>31</width>
-      <height>111</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:96pt;&quot;&gt;[&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_15">
-    <property name="geometry">
-     <rect>
-      <x>1490</x>
-      <y>810</y>
-      <width>31</width>
-      <height>111</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:96pt;&quot;&gt;]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_ag_query_jobs">
@@ -508,9 +482,9 @@
     <widget class="QLabel" name="label_12">
      <property name="geometry">
       <rect>
-       <x>1140</x>
+       <x>1080</x>
        <y>-10</y>
-       <width>291</width>
+       <width>421</width>
        <height>61</height>
       </rect>
      </property>
@@ -544,6 +518,41 @@
       <string>Details</string>
      </property>
     </widget>
+    <widget class="QLabel" name="label_14">
+     <property name="geometry">
+      <rect>
+       <x>1040</x>
+       <y>790</y>
+       <width>31</width>
+       <height>171</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:96pt;&quot;&gt;[&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_15">
+     <property name="geometry">
+      <rect>
+       <x>1490</x>
+       <y>790</y>
+       <width>31</width>
+       <height>181</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:96pt;&quot;&gt;]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+    <zorder>layoutWidget</zorder>
+    <zorder>label_4</zorder>
+    <zorder>layoutWidget</zorder>
+    <zorder>lbl_cust_resp</zorder>
+    <zorder>btn_cust_refresh_jobs</zorder>
+    <zorder>btn_cust_details_jobs</zorder>
+    <zorder>label_14</zorder>
+    <zorder>label_15</zorder>
+    <zorder>label_12</zorder>
    </widget>
    <widget class="QLineEdit" name="le_ag_radius">
     <property name="geometry">
@@ -629,8 +638,6 @@
    <zorder>l</zorder>
    <zorder>le_ag_long</zorder>
    <zorder>le_ag_lat</zorder>
-   <zorder>label_14</zorder>
-   <zorder>label_15</zorder>
    <zorder>btn_ag_query_jobs</zorder>
    <zorder>label_16</zorder>
    <zorder>btn_ag_take</zorder>
@@ -653,7 +660,7 @@
      <x>0</x>
      <y>0</y>
      <width>1607</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

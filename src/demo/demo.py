@@ -1,5 +1,16 @@
 from PyQt5 import QtWidgets, uic
+import resources
 import sys
+
+AUTH_HOST = "localhost"
+AUTH_PORT = "5000"
+
+GEO_HOST = "localhost"
+GEO_PORT = "80"
+
+customer_token = None
+agent_token = None
+
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
@@ -55,7 +66,7 @@ class Ui(QtWidgets.QMainWindow):
         self.show()
 
     def cust_loginout_pressed(self):
-        # Todo
+        #Todo
         pass
 
     def cust_post_job(self):
