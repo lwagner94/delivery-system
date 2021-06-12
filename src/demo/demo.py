@@ -74,7 +74,7 @@ class Ui(QtWidgets.QMainWindow):
         # Todo 
         pass
     
-    def at_loginout_pressed(self):
+    def ag_loginout_pressed(self):
         # Todo
         pass
 
