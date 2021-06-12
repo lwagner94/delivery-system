@@ -26,7 +26,7 @@ services:
     environment:
       - FLASK_ENV=development
 
-  agentapi:
+  agent:
     image: ${DOCKER_REGISTRY-}agentapi
     build:
       context: .
@@ -36,7 +36,7 @@ services:
     ports:
       - 5100:80
     
-  geoapi:
+  geo:
     image: ${DOCKER_REGISTRY-}geoapi
     build:
       context: .
@@ -45,4 +45,3 @@ services:
       - "80"
     ports:
       - 5200:80
-

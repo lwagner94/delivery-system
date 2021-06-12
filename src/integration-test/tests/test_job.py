@@ -24,3 +24,31 @@ def test_create_job_wrong_role(service, agent_token):
 def test_create_job_not_logged_in(service, agent_token):
     res = requests.post(service + "/job", json=standard_job_info)
     assert res.status_code == 401
+
+def test_claim(service, created_job, agent_token, provider_token):
+    res = requests.get(service + "/auth/user/self", headers=agent_token)
+    agent_id = res.json()["id"]
+    res = requests.get(service + "/auth/user/self", headers=provider_token)
+    provider_id = res.json()["id"]
+
+    res = requests.get(service + "/job/" + created_job, headers=provider_token)
+    assert res.status_code == 200
+    assert res.json()["job_id"] == created_job
+    assert res.json()["agent_user_id"] == None
+
+    body = res.json()
+    body["agent_user_id"] = agent_id
+    body["status"] = "claimed"
+
+    res = requests.put(service + "/job/" + created_job, headers=agent_token, json=body)
+    assert res.status_code == 200
+
+    res = requests.get(service + "/job/" + created_job, headers=provider_token)
+    assert res.status_code == 200
+    assert res.json()["agent_user_id"] == agent_id
+    assert res.json()["status"] == "claimed"
+
+
+
+
+

@@ -26,7 +26,6 @@ AUTH_PORT = "5000"
 GEO_HOST = "geo"
 GEO_PORT = "80"
 
-
 class Job(db.Model):
     __tablename__ = "jobs"
     id = db.Column(db.Integer, primary_key=True)
@@ -60,22 +59,29 @@ def authorize(token):
 
 
 def geolocate(address, token):
+    print("In geo", flush=True)
+    
     if GEO_HOST is None or GEO_PORT is None:
         return None
-    headers = { "Authorization": "Bearer {0}".format(token), 
-                "address": "{0}".format(address)}
+    headers = { "Authorization": "Bearer {0}".format(token)}
 
     lon = None
     lat = None
 
     try:
-        r = request.get("http://{0}:{1}/geo/coordinates".format(GEO_HOST, GEO_PORT), headers=headers)
+        params = {
+            "address": address
+        }
+
+        r = requests.get("http://{0}:{1}/geo/coordinates".format(GEO_HOST, GEO_PORT), headers=headers, params=params)
+
         if r.status_code != 200:
             return None
 
         lon = r.json()["longitude"]
         lat = r.json()["latitude"]
-    except:
+    except Exception as e:
+        print(e, flush=True)
         return None
 
     return (lon, lat)
@@ -262,7 +268,15 @@ def get_job_info(job_id):
     if j is None:
         return "Job not found", 404
 
-    return str(j), 200
+    return {
+        "pickup_at": j.pickup_at,
+        "deliver_at": j.deliver_at,
+        "description": j.description,
+        "status": j.status,
+        "agent_user_id": j.agent_user_id,
+        "provider_user_id": j.provider_user_id,
+        "job_id": j.job_id
+    }, 200
 
 
 @app.route('/job/<job_id>', methods=['PUT'])
@@ -328,7 +342,14 @@ def track_job(job_id):
         return "Job not found", 404
 
     # Todo: add agent tracking information
-    return str(j), 200
+    return {
+        "pickup_at": j.pickup_at,
+        "deliver_at": j.deliver_at,
+        "description": j.description,
+        "status": j.status,
+        "longitude": "",
+        "latitude": ""
+    }, 200
 
 @app.route('/job/test_reset', methods=["POST"])
 def test_reset():

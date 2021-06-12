@@ -5,7 +5,6 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - ./test-db:/data
       - ./auth/app:/app
     environment: 
       - INTEGRATION_TEST=1
@@ -23,10 +22,32 @@ services:
     ports:
       - 3000:5000
     volumes:
-      - ./test-db:/data
       - ./job/app:/app
     environment:
       - INTEGRATION_TEST=1 
       - FLASK_ENV=development
 
 
+  agent:
+    image: ${DOCKER_REGISTRY-}agentapi
+    build:
+      context: .
+      dockerfile: AgentAPI/Dockerfile
+    expose:
+      - "80"
+    ports:
+      - 5100:80
+    environment:
+      - INTEGRATION_TEST=1 
+    
+  geo:
+    image: ${DOCKER_REGISTRY-}geoapi
+    build:
+      context: .
+      dockerfile: GeoAPI/Dockerfile
+    expose:
+      - "80"
+    ports:
+      - 5200:80
+    environment:
+      - INTEGRATION_TEST=1 
