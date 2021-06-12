@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="usecase_phone">
+    <file>usecase_phone.png</file>
+  </qresource>
+  <qresource prefix="usecase_monitor">
+    <file>usecase_screen.png</file>
+  </qresource>
+</RCC>
