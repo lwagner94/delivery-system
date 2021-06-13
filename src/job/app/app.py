@@ -150,6 +150,14 @@ def create_job():
 
 @app.route('/job', methods=['GET'])
 def get_jobs():
+
+    radius      = request.args.get('radius')
+    longitude   = request.args.get('longitude')
+    latitude    = request.args.get('latitude')
+    status      = request.args.get('status')
+    provider_user_id    = request.args.get('provider_user_id')
+    agent_user_id       = request.args.get('agent_user_id')
+
     token = ""
     r = None
     try:
@@ -169,25 +177,24 @@ def get_jobs():
     f_provider_user_id = None
     f_agend_user_id = None
 
-    body: dict = request.json
 
-    if r.json()["role"] in ["admin", "agent"]:
-        f_radius = float(body.get("radius"))
-        f_long = float(body.get("longitude"))
-        f_lat = float(body.get("latitude"))
+    if r.json()["role"] in ["admin", "agent"]: 
+        f_radius = float(radius) if radius is not None else None
+        f_long = float(longitude) if longitude is not None else None
+        f_lat = float(latitude) if latitude is not None  else None
     
     if r.json()["role"] in ["admin", "agent", "provider"]:
-        f_status = body.get("status")
+        f_status = status
 
     if r.json()["role"] == "admin":
-        f_provider_user_id = body.get("provider_user_id")
-        f_agend_user_id = body.get("agent_user_id")
+        f_provider_user_id = provider_user_id
+        f_agend_user_id = agent_user_id
 
     if r.json()["role"] == "provider":
-        f_provider_user_id = "self"
+        f_provider_user_id = "self" if provider_user_id is not None else None
 
     if r.json()["role"] == "agent":
-        f_agend_user_id = "self"
+        f_agend_user_id = "self" if agent_user_id is not None else None
 
     #f_sql_status = "" if f_status is None else "AND status = '{0}'".format(f_status)
     #f_sql_agend_user_id = "" if f_agend_user_id is None else "AND agent_user_id = '{0}'".format(f_agend_user_id)
@@ -203,10 +210,13 @@ def get_jobs():
     # Todo: SQLAlchemy in combination with sqlite3.create_function causes troubles!
     #       solves this issue to get a much better runtime
 
-    if f_radius is not None and (f_lat is None or f_long is None):
-        return "Invalid Paramter", 404 
+    #if f_radius is not None and (f_lat is None or f_long is None):
+    #    return "Invalid Paramter", 404 
 
     j = Job.query
+
+    if f_provider_user_id == "self":
+        f_provider_user_id = r.json()['id']
 
     if f_status is not None:
         j = j.filter_by(status=f_status)
@@ -306,26 +316,33 @@ def update_job(job_id):
         
     body: dict = request.json
 
-    if not body.get("pickup_at") or not body.get("deliver_at") \
-        or not body.get("description") or not body.get("status") \
-        or not body.get("agent_user_id"):
-        return "Invalid parameters", 400
 
-    (pu_lon, pu_lat) = geolocate(body.get("pickup_at"), token)
-    (d_lon, d_lat) = geolocate(body.get("deliver_at"), token)
+    if body.get("pickup_at") is not None:
+        (pu_lon, pu_lat) = geolocate(body.get("pickup_at"), token)
+        if pu_lon is None or pu_lat is None:
+            return "Invalid parameters", 400
+        j.pickup_at = body.get("pickup_at")
+        j.pickup_lon = pu_lon
+        j.pickup_lat = pu_lat
 
-    if pu_lon is None or pu_lat is None or d_lon is None or d_lat is None:
-        return "Invalid parameters", 400
+    if body.get("deliver_at") is not None:
+        (d_lon, d_lat) = geolocate(body.get("deliver_at"), token)
+        if d_lon is None or d_lat is None:
+            return "Invalid parameters", 400
+        j.deliver_at = body.get("deliver_at")
+        j.deliver_lon = d_lon
+        j.deliver_lat = d_lat
 
-    j.pickup_at = body.get("pickup_at")
-    j.deliver_at = body.get("deliver_at")
-    j.description = body.get("description")
-    j.status = body.get("status")
-    j.agent_user_id = body.get("agent_user_id")
-    j.pickup_lon = pu_lon
-    j.pickup_lat = pu_lat
-    j.deliver_lon = d_lon
-    j.deliver_lat = d_lat
+    if body.get("description") is not None:
+        j.description = body.get("description")
+
+    if body.get("status") is not None:
+        j.status = body.get("status")
+    
+    if body.get("agent_user_id") is not None:
+        j.agent_user_id = body.get("agent_user_id")
+
+
     db.session.commit()
 
     return "Job successfully updated", 200
