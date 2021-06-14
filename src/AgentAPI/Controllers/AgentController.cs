@@ -37,27 +37,19 @@ namespace AgentAPI
 
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<ActionResult<AgentState>> GetAgentState(string id)
+        public ActionResult<AgentState> GetAgentState(string id)
         {
             if (id.ToLower() == "self")
             {
                 id = UserId;
             }
 
-            var authResponse = await authService.Get(id, Request);
-            if (authResponse.StatusCode == HttpStatusCode.OK)
+            using var conn = dataAccess.GetConnection();
+            if (!(conn.Get<AgentStateTable>(id) is AgentState entry))
             {
-                using var conn = dataAccess.GetConnection();
-                if (!(conn.Get<AgentStateTable>(id) is AgentState entry))
-                {
-                    return NotFound("Agent has not yet reported a status.");
-                }
-                return Ok(entry);
+                return NotFound("Agent has not yet reported a status.");
             }
-            else
-            {
-                return StatusCode((int)authResponse.StatusCode);
-            }
+            return Ok(entry);
         }
 
         [HttpPut("{id}")]
