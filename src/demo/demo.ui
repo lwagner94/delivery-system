@@ -467,19 +467,6 @@
      <string>Translate</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="le_addr_query">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>860</y>
-      <width>461</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Inffeldgasse 16a, 8010 Graz</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="lbl_token_customer">
     <property name="geometry">
      <rect>
@@ -617,6 +604,46 @@
      <string>radius / m</string>
     </property>
    </widget>
+   <widget class="QComboBox" name="cb_addr_query">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>860</y>
+      <width>461</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Inffeldgasse 16a, 8010 Graz</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Inffeldgasse 10, 8010 Graz</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Moserhofgasse 12, 8010 Graz</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Hauptplatz 10, 8010 Graz</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Sackgasse 1, 8010 Graz</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Klosterwiesgasse 1, 8010 Graz</string>
+     </property>
+    </item>
+   </widget>
    <zorder>label_4</zorder>
    <zorder>label_3</zorder>
    <zorder>lw_ag_jobs_list</zorder>
@@ -643,7 +670,6 @@
    <zorder>label_12</zorder>
    <zorder>lbl_cust_resp</zorder>
    <zorder>btn_geo_translate</zorder>
-   <zorder>le_addr_query</zorder>
    <zorder>lbl_token_customer</zorder>
    <zorder>lbl_token_agent</zorder>
    <zorder>te_job_details</zorder>
@@ -654,6 +680,7 @@
    <zorder>label_2</zorder>
    <zorder>le_ag_radius</zorder>
    <zorder>label_9</zorder>
+   <zorder>cb_addr_query</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
