@@ -55,7 +55,7 @@ class Ui(QtWidgets.QMainWindow):
         self.lw_cust_jobs.itemClicked.connect(self.customer_item_selected)
 
 
-        self.le_geo_addr            = self.findChild(QtWidgets.QLineEdit, 'le_addr_query')
+        self.cb_geo_addr            = self.findChild(QtWidgets.QComboBox, 'cb_addr_query')
         self.btn_geo_translate      = self.findChild(QtWidgets.QPushButton, 'btn_geo_translate')
         self.btn_geo_translate.clicked.connect(self.geo_translate)
         self.le_ag_long             = self.findChild(QtWidgets.QLineEdit, 'le_ag_long')
@@ -202,7 +202,7 @@ class Ui(QtWidgets.QMainWindow):
 
         try:
             headers = { "Authorization": "Bearer {0}".format(self.agent_token)}
-            params = {"address": "{}".format(self.le_geo_addr.text())}
+            params = {"address": "{}".format(str(self.cb_geo_addr.currentText()))}
 
             print(params)
 
