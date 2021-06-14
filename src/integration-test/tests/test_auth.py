@@ -13,6 +13,13 @@ def test_login_missing_parameters(service):
     res = requests.post(service + "/auth/login")
     assert res.status_code == 400
 
+def test_login_invalid_parameters(service):
+    res = requests.post(service + "/auth/login", json={"email": "admin@example.com", "password": "invalid"})
+    assert res.status_code == 401
+
+    res = requests.post(service + "/auth/login", json={"email": "notadmin@example.com", "password": "secret"})
+    assert res.status_code == 401
+
 
 def test_logout(service, admin_token):
     res = requests.post(service + "/auth/logout", headers=admin_token)
@@ -80,6 +87,17 @@ def test_delete_other_user(service, admin_token, provider_token, agent_token):
     assert res.status_code == 403
     res = requests.get(service + f"/auth/user/{agent_id}", headers=admin_token)
     assert res.status_code == 200
+
+def test_delete_without_auth(service, agent_token):
+    res = requests.get(service + "/auth/user/self", headers=agent_token)
+    agent_id = res.json().get("id")
+
+    res = requests.delete(service + f"/auth/user/{agent_id}")
+    assert res.status_code == 401
+
+def test_delete_unknown_user(service, admin_token):
+    res = requests.get(service + f"/auth/user/unknown", headers=admin_token)
+    assert res.status_code == 404
 
 
 def test_delete_own_user(service, admin_token, provider_token, agent_token):
