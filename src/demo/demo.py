@@ -260,7 +260,7 @@ class Ui(QtWidgets.QMainWindow):
 
         try:
             headers = { "Authorization": "Bearer {0}".format(self.agent_token)}
-            res = requests.put(SERVICE + "/job/self", 
+            res = requests.put(SERVICE + "/agent/self", 
                                     json={"status": "idle",
                                         "longitude": float(self.le_ag_long.text()),
                                         "latitude": float(self.le_ag_lat.text()),
