@@ -40,6 +40,11 @@ cd src
 ./run_tests.sh
 ```
 
+For Windows:
+```bash
+.\run_tests.ps1
+```
+
 This spins up builds and spins up all services in a special configuration, builds the test driver container, executes the tests
 and finally, all containers are stopped again.
 
