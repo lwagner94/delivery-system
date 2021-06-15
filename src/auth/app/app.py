@@ -130,12 +130,15 @@ def logout():
 @app.route('/auth/user', methods=["POST"])
 @auth.login_required(role="admin")
 def create_user():
+    if not request.json:
+        return "Invalid/missing parameters", 400
+
     email: str = request.json.get("email")
     password: str = request.json.get("password")
     role: str = request.json.get("role")
 
     if not email or not password or not role:
-        return "Bad Request", 400
+        return "Invalid/missing parameters", 400
 
     try:
         u = User(email=email, role=role, id=str(uuid.uuid4()))
@@ -143,7 +146,7 @@ def create_user():
         db.session.add(u)
         db.session.commit()
     except sqlalchemy.exc.IntegrityError:
-        return "Bad Request", 400
+        return "Duplicate email", 400
 
     return "Created", 201
 

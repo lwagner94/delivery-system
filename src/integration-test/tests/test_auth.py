@@ -61,6 +61,21 @@ def test_create_user_as_admin(service, admin_token):
     res = requests.post(service + "/auth/user", json={"email": "admin2@example.com", "password": "secret", "role": "admin"}, headers=admin_token)
     assert res.status_code == 201
 
+def test_create_user_empty_body(service, admin_token):
+    res = requests.post(service + "/auth/user", headers=admin_token)
+    assert res.status_code == 400
+
+def test_create_user_invalid_body(service, admin_token):
+    res = requests.post(service + "/auth/user", headers=admin_token, data=b"something")
+    assert res.status_code == 400
+
+def test_create_user_missing_parameters(service, admin_token):
+    res = requests.post(service + "/auth/user", json={"email": "admin2@example.com", "password": "secret"}, headers=admin_token)
+    assert res.status_code == 400
+    res = requests.post(service + "/auth/user", json={"password": "secret", "role": "admin"}, headers=admin_token)
+    assert res.status_code == 400
+    res = requests.post(service + "/auth/user", json={"email": "admin2@example.com", "role": "admin"}, headers=admin_token)
+    assert res.status_code == 400
 
 def test_create_user_where_it_should_be_forbidden(service, provider_token, agent_token):
 
