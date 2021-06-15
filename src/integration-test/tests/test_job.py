@@ -94,7 +94,7 @@ def test_job_tracking(service, created_job):
 
 def test_get_job_in_radius(service, created_job, agent_token, admin_token):
     # setup job
-    job_params_update = { "pickup_at": "Herrengasse 10, 8010 Graz", "deliver_at": "Inffeldgasse 16a, 8010 Graz", "status": "test-job" }
+    job_params_update = { "pickup_at": "Herrengasse 10, 8010 Graz", "deliver_at": "Inffeldgasse 16a, 8010 Graz", "status": "open" }
     job = requests.put(service + f"/job/{created_job}", params=job_params_update, headers=admin_token)
 
     # setup agent
@@ -104,16 +104,17 @@ def test_get_job_in_radius(service, created_job, agent_token, admin_token):
     agent_location_lon = geo.json()["longitude"]
 
     # agent is currently at Graz HBF and searches for jobs in a radius of 2300m
-    job_params_search = { "radius": 1000, "latitude": agent_location_lat, "longitude": agent_location_lon, "status": 'test-job' }
+    job_params_search = { "radius": 1000, "latitude": agent_location_lat, "longitude": agent_location_lon, "status": "open" }
     job = requests.get(service + "/job", params=job_params_search, headers=agent_token)
     assert len(job.json()) == 0
 
     # unfortunately agent didn't find any jobs -> increase radius
     job_params_search["radius"] = 2500
     job = requests.get(service + "/job", params=job_params_search, headers=agent_token)
-    assert len(job.json()) == 1
-    assert len(job.json()[0]["id"]) == created_job
-    
+    jobs_cnt = len(job.json())
+    assert jobs_cnt >= 1
+    assert job.json()[jobs_cnt - 1]["id"] == created_job
+
 def test_update_job_empty_body(service, created_job, agent_token):
     res = requests.put(service + f"/job/{created_job}", headers=agent_token)
     assert res.status_code == 400
