@@ -64,7 +64,16 @@ namespace DeliverySystemLib
                 return AuthenticateResult.Fail($"Missing {Options.TokenHeaderName} Token.");
             }
 
-            var authResponse = await Get("self", Request);
+            HttpResponseMessage authResponse;
+            try
+            {
+                authResponse = await Get("self", Request);
+            }
+            catch (System.Exception ex)
+            {
+                return AuthenticateResult.Fail($"Auth service failed { ex.GetType().ToString() }.");
+            }
+
             if (authResponse.IsSuccessStatusCode)
             {
                 var userInfo = await authResponse.Content.ReadAsAsync<UserInfo>();

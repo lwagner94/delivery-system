@@ -19,13 +19,17 @@ namespace GeoAPI.Controllers
         [Authorize]
         public async Task<ActionResult<Coordinates>> GetCoordinates([FromQuery] string address)
         {
+            if (string.IsNullOrEmpty(address))
+            {
+                return BadRequest();
+            }
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
             var query = url + "?q=" + address.Replace(' ', '+') + "&format=jsonv2";
             var response = await httpClient.GetAsync(query);
             var data = await response.Content.ReadAsStringAsync();
             var geoData = await response.Content.ReadAsAsync<GeoData[]>();
-            var result = geoData.Where(x => x.Osm_type == "node").OrderByDescending(x => x.Importance).FirstOrDefault();
+            var result = geoData.FirstOrDefault();
             if (result == null)
             {
                 return BadRequest();
