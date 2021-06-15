@@ -115,6 +115,8 @@ def create_job():
         return "User is not permitted to perform this operation (e.g. wrong role)", 403
 
     body: dict = request.json
+    if not body:
+        return "Invalid parameters", 400
     pickup_at = body.get("pickup_at")
     deliver_at = body.get("deliver_at")
     description = body.get("description")
@@ -313,8 +315,11 @@ def update_job(job_id):
     if j is None:
         return "Job not found", 404
         
-    body: dict = request.json
 
+    
+    body: dict = request.json
+    if not body:
+        return "Invalid parameters", 400
 
     if body.get("pickup_at") is not None:
         (pu_lon, pu_lat) = geolocate(body.get("pickup_at"), token)

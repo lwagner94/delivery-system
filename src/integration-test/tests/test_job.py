@@ -113,3 +113,11 @@ def test_get_job_in_radius(service, created_job, agent_token, admin_token):
     job = requests.get(service + "/job", params=job_params_search, headers=agent_token)
     assert len(job.json()) == 1
     assert len(job.json()[0]["id"]) == created_job
+    
+def test_update_job_empty_body(service, created_job, agent_token):
+    res = requests.put(service + f"/job/{created_job}", headers=agent_token)
+    assert res.status_code == 400
+
+def test_create_job_empty_body(service, created_job, provider_token):
+    res = requests.post(service + "/job", headers=provider_token)
+    assert res.status_code == 400
