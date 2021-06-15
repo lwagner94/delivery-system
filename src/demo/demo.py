@@ -55,7 +55,7 @@ class Ui(QtWidgets.QMainWindow):
         self.lw_cust_jobs.itemClicked.connect(self.customer_item_selected)
 
 
-        self.le_geo_addr            = self.findChild(QtWidgets.QLineEdit, 'le_addr_query')
+        self.cb_geo_addr            = self.findChild(QtWidgets.QComboBox, 'cb_addr_query')
         self.btn_geo_translate      = self.findChild(QtWidgets.QPushButton, 'btn_geo_translate')
         self.btn_geo_translate.clicked.connect(self.geo_translate)
         self.le_ag_long             = self.findChild(QtWidgets.QLineEdit, 'le_ag_long')
@@ -196,9 +196,15 @@ class Ui(QtWidgets.QMainWindow):
 
     
     def geo_translate(self):
+        if self.agent_token is None:
+            self.lbl_ag_resp.setText("Agent not logged in!")
+            return
+
         try:
             headers = { "Authorization": "Bearer {0}".format(self.agent_token)}
-            params = {"address": self.le_geo_addr.text()}
+            params = {"address": "{}".format(str(self.cb_geo_addr.currentText()))}
+
+            print(params)
 
             res = requests.get(SERVICE + "/geo/coordinates", params=params, headers=headers)
 
@@ -206,6 +212,7 @@ class Ui(QtWidgets.QMainWindow):
                 self.le_ag_lat.setText(str(res.json()['latitude']))
                 self.le_ag_long.setText(str(res.json()['longitude']))
                 self.lbl_ag_resp.setText("Done.")
+                return
 
             self.lbl_ag_resp.setText("Error! Wrong status code: {}".format(res.status_code))
 
@@ -253,7 +260,7 @@ class Ui(QtWidgets.QMainWindow):
 
         try:
             headers = { "Authorization": "Bearer {0}".format(self.agent_token)}
-            res = requests.put(SERVICE + "/job/self", 
+            res = requests.put(SERVICE + "/agent/self", 
                                     json={"status": "idle",
                                         "longitude": float(self.le_ag_long.text()),
                                         "latitude": float(self.le_ag_lat.text()),
@@ -291,6 +298,7 @@ class Ui(QtWidgets.QMainWindow):
                 self.lbl_ag_resp.setText("Job taken! :)")
                 self.agent_job = job_id
                 self.lbl_active_job.setText(job_id)
+                self.lw_ag_jobs_list.clear()
                 return
 
             self.lbl_ag_resp.setText("Error status code! Staus: {}".format(res.status_code))
@@ -350,6 +358,7 @@ class Ui(QtWidgets.QMainWindow):
                 self.lbl_ag_resp.setText("Job done! :D")
                 self.agent_job = None
                 self.lbl_active_job.setText("None")
+                self.lw_ag_jobs_list.clear()
                 return
 
             self.lbl_ag_resp.setText("Error status code! Staus: {}".format(res.status_code))
