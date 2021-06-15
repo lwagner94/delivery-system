@@ -89,4 +89,12 @@ def test_job_tracking(service, created_job):
     res = requests.get(service + f"/job/tracking/{created_job}")
     assert res.status_code == 200
 
+def test_update_job_empty_body(service, created_job, agent_token):
+    res = requests.put(service + f"/job/{created_job}", headers=agent_token)
+    assert res.status_code == 400
+
+def test_create_job_empty_body(service, created_job, provider_token):
+    res = requests.post(service + "/job", headers=provider_token)
+    assert res.status_code == 400
+
 #TODO test get jobs
