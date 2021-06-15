@@ -59,10 +59,9 @@ def authorize(token):
 
 
 def geolocate(address, token):
-    print("In geo", flush=True)
     
     if GEO_HOST is None or GEO_PORT is None:
-        return None
+        return (None, None)
     headers = { "Authorization": "Bearer {0}".format(token)}
 
     lon = None
@@ -76,13 +75,13 @@ def geolocate(address, token):
         r = requests.get("http://{0}:{1}/geo/coordinates".format(GEO_HOST, GEO_PORT), headers=headers, params=params)
 
         if r.status_code != 200:
-            return None
+            return (None, None)
 
         lon = r.json()["longitude"]
         lat = r.json()["latitude"]
     except Exception as e:
         print(e, flush=True)
-        return None
+        return (None, None)
 
     return (lon, lat)
 
