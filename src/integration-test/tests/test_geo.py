@@ -19,3 +19,7 @@ def test_geolocate_invalid(service, admin_token):
     params = {"addresss": "NotARealAddress"}
     res = requests.get(service + "/geo/coordinates", params=params, headers=admin_token)
     assert res.status_code == 400
+
+def test_invalid_parameter(service, admin_token):
+    res = requests.get(service + "/geo/coordinates", headers=admin_token)
+    assert res.status_code == 400
