@@ -1,4 +1,8 @@
 # Delivery System
+This is a small scale implementation of a job-based goods delivery system, implemented as micro services.
+It was developed as a part of the *Smart Service Development* practical at Graz University of Technology.
+It is in no way ready for any production use. You have been warned.
+
 
 ## Services
 
@@ -81,7 +85,7 @@ python3 demo.py
 ## Pitfalls
  - Originally, the authentication service was written in Rust. It was completely functional, however there were some issues with CORS and due to library versioning issues, this could not be easily solved. For that reason, the service was completely rewritten in Python/Flask
 
-## Students
+## Authors
   - Meinhard Kissich
   - Klaus Weinberg
   - Lukas Wagner
