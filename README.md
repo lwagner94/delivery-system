@@ -1,9 +1,4 @@
 # Delivery System
-## Students
-  - Meinhard Kissich (11771817)
-  - Klaus Weinberg (11721179)
-  - Lukas Wagner (0140206)
-
 
 ## Services
 
@@ -85,3 +80,11 @@ python3 demo.py
 
 ## Pitfalls
  - Originally, the authentication service was written in Rust. It was completely functional, however there were some issues with CORS and due to library versioning issues, this could not be easily solved. For that reason, the service was completely rewritten in Python/Flask
+
+## Students
+  - Meinhard Kissich
+  - Klaus Weinberg
+  - Lukas Wagner
+
+## License
+MIT
